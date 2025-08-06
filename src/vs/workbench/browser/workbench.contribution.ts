@@ -375,9 +375,15 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 				'description': localize('centeredLayoutAutoResize', "Controls if the centered layout should automatically resize to maximum width when more than one group is open. Once only one group is open it will resize back to the original centered width.")
 			},
 			'workbench.editor.centeredLayoutFixedWidth': {
-				'type': 'boolean',
+				'type': ['boolean', 'string'],
+				'enum': [false, 'fixedWindowWidth', 'fixedEditorWidth'],
+				'enumDescriptions': [
+					localize('centeredLayoutFixedWidth.false', "Use proportional margins that scale with window size"),
+					localize('centeredLayoutFixedWidth.fixedWindowWidth', "Maintain a constant width regardless of window size"),
+					localize('centeredLayoutFixedWidth.fixedEditorWidth', "Keep editor width fixed but scale proportionally when window is too small")
+				],
 				'default': false,
-				'description': localize('centeredLayoutDynamicWidth', "Controls whether the centered layout tries to maintain constant width when the window is resized.")
+				'description': localize('centeredLayoutDynamicWidth', "Controls the width behavior of the centered layout.")
 			},
 			'workbench.editor.doubleClickTabToToggleEditorGroupSizes': {
 				'type': 'string',

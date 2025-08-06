@@ -1259,7 +1259,7 @@ interface IEditorPartConfiguration {
 	splitSizing?: 'auto' | 'split' | 'distribute';
 	splitOnDragAndDrop?: boolean;
 	dragToOpenWindow?: boolean;
-	centeredLayoutFixedWidth?: boolean;
+	centeredLayoutFixedWidth?: false | 'fixedWindowWidth' | 'fixedEditorWidth';
 	doubleClickTabToToggleEditorGroupSizes?: 'maximize' | 'expand' | 'off';
 	editorActionsLocation?: 'default' | 'titleBar' | 'hidden';
 	limit?: IEditorPartLimitConfiguration;
