@@ -118,6 +118,11 @@ function validateEditorPartOptions(options: IEditorPartOptions): IEditorPartOpti
 		options.showTabs = options.showTabs ? 'multiple' : 'single';
 	}
 
+	// Migrate: Centered layout fixed width (boolean to enum)
+	if (typeof options.centeredLayoutFixedWidth === 'boolean') {
+		options.centeredLayoutFixedWidth = options.centeredLayoutFixedWidth ? 'fixedWindowWidth' : false;
+	}
+
 	return verifyObject<IEditorPartOptions>({
 		'wrapTabs': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['wrapTabs']),
 		'scrollToSwitchTabs': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['scrollToSwitchTabs']),
