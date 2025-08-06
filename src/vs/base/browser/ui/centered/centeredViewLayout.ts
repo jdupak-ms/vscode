@@ -71,7 +71,7 @@ export class CenteredViewLayout implements IDisposable {
 		private container: HTMLElement,
 		private view: IView,
 		public state: CenteredViewState = { ...defaultState },
-		private centeredLayoutFixedWidth: boolean = false
+		private centeredLayoutFixedWidth: false | 'fixedWindowWidth' | 'fixedEditorWidth' = false
 	) {
 		this.container.appendChild(this.view.element);
 		// Make sure to hide the split view overflow like sashes #52892
@@ -101,7 +101,7 @@ export class CenteredViewLayout implements IDisposable {
 		this.lastLayoutPosition = { width, height, top, left };
 		if (this.splitView) {
 			this.splitView.layout(width, this.lastLayoutPosition);
-			if (!this.didLayout || this.centeredLayoutFixedWidth) {
+			if (!this.didLayout || this.centeredLayoutFixedWidth !== false) {
 				this.resizeSplitViews();
 			}
 		} else {
@@ -115,23 +115,49 @@ export class CenteredViewLayout implements IDisposable {
 		if (!this.splitView) {
 			return;
 		}
-		if (this.centeredLayoutFixedWidth) {
-			const centerViewWidth = Math.min(this.lastLayoutPosition.width, this.state.targetWidth);
-			const marginWidthFloat = (this.lastLayoutPosition.width - centerViewWidth) / 2;
-			this.splitView.resizeView(0, Math.floor(marginWidthFloat));
-			this.splitView.resizeView(1, centerViewWidth);
-			this.splitView.resizeView(2, Math.ceil(marginWidthFloat));
-		} else {
+		
+		if (this.centeredLayoutFixedWidth === false) {
+			// Proportional margins mode (original false behavior)
 			const leftMargin = this.state.leftMarginRatio * this.lastLayoutPosition.width;
 			const rightMargin = this.state.rightMarginRatio * this.lastLayoutPosition.width;
 			const center = this.lastLayoutPosition.width - leftMargin - rightMargin;
 			this.splitView.resizeView(0, leftMargin);
 			this.splitView.resizeView(1, center);
 			this.splitView.resizeView(2, rightMargin);
+		} else if (this.centeredLayoutFixedWidth === 'fixedWindowWidth') {
+			// Fixed window width mode (original true behavior)
+			const centerViewWidth = Math.min(this.lastLayoutPosition.width, this.state.targetWidth);
+			const marginWidthFloat = (this.lastLayoutPosition.width - centerViewWidth) / 2;
+			this.splitView.resizeView(0, Math.floor(marginWidthFloat));
+			this.splitView.resizeView(1, centerViewWidth);
+			this.splitView.resizeView(2, Math.ceil(marginWidthFloat));
+		} else if (this.centeredLayoutFixedWidth === 'fixedEditorWidth') {
+			// Fixed editor width mode (new behavior)
+			// Try to maintain target width, but scale proportionally if window is too small
+			const targetEditorWidth = this.state.targetWidth;
+			const windowWidth = this.lastLayoutPosition.width;
+			
+			if (windowWidth >= targetEditorWidth) {
+				// Window is large enough, use target width with equal margins
+				const marginWidth = (windowWidth - targetEditorWidth) / 2;
+				this.splitView.resizeView(0, Math.floor(marginWidth));
+				this.splitView.resizeView(1, targetEditorWidth);
+				this.splitView.resizeView(2, Math.ceil(marginWidth));
+			} else {
+				// Window is too small, scale proportionally while keeping editor prominent
+				// Use 80% of window for editor, 10% each for margins
+				const editorWidth = Math.floor(windowWidth * 0.8);
+				const marginWidth = Math.floor(windowWidth * 0.1);
+				const remainingWidth = windowWidth - editorWidth - marginWidth * 2;
+				
+				this.splitView.resizeView(0, marginWidth);
+				this.splitView.resizeView(1, editorWidth + remainingWidth); // Give remaining to editor
+				this.splitView.resizeView(2, marginWidth);
+			}
 		}
 	}
 
-	setFixedWidth(option: boolean) {
+	setFixedWidth(option: false | 'fixedWindowWidth' | 'fixedEditorWidth') {
 		this.centeredLayoutFixedWidth = option;
 		if (!!this.splitView) {
 			this.updateState();
@@ -206,11 +232,12 @@ export class CenteredViewLayout implements IDisposable {
 	}
 
 	isDefault(state: CenteredViewState): boolean {
-		if (this.centeredLayoutFixedWidth) {
-			return state.targetWidth === defaultState.targetWidth;
-		} else {
+		if (this.centeredLayoutFixedWidth === false) {
 			return state.leftMarginRatio === defaultState.leftMarginRatio
 				&& state.rightMarginRatio === defaultState.rightMarginRatio;
+		} else {
+			// For both fixedWindowWidth and fixedEditorWidth modes, check target width
+			return state.targetWidth === defaultState.targetWidth;
 		}
 	}
 

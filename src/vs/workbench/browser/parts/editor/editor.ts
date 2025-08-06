@@ -118,6 +118,11 @@ function validateEditorPartOptions(options: IEditorPartOptions): IEditorPartOpti
 		options.showTabs = options.showTabs ? 'multiple' : 'single';
 	}
 
+	// Migrate: Centered layout fixed width (boolean to enum)
+	if (typeof options.centeredLayoutFixedWidth === 'boolean') {
+		options.centeredLayoutFixedWidth = options.centeredLayoutFixedWidth ? 'fixedWindowWidth' : false;
+	}
+
 	return verifyObject<IEditorPartOptions>({
 		'wrapTabs': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['wrapTabs']),
 		'scrollToSwitchTabs': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['scrollToSwitchTabs']),
@@ -138,7 +143,7 @@ function validateEditorPartOptions(options: IEditorPartOptions): IEditorPartOpti
 		'restoreViewState': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['restoreViewState']),
 		'splitOnDragAndDrop': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['splitOnDragAndDrop']),
 		'dragToOpenWindow': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['dragToOpenWindow']),
-		'centeredLayoutFixedWidth': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['centeredLayoutFixedWidth']),
+		'centeredLayoutFixedWidth': new EnumVerifier(DEFAULT_EDITOR_PART_OPTIONS['centeredLayoutFixedWidth'], [false, 'fixedWindowWidth', 'fixedEditorWidth']),
 		'hasIcons': new BooleanVerifier(DEFAULT_EDITOR_PART_OPTIONS['hasIcons']),
 
 		'tabSizingFixedMinWidth': new NumberVerifier(DEFAULT_EDITOR_PART_OPTIONS['tabSizingFixedMinWidth']),
